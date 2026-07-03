@@ -52,7 +52,7 @@ function PostCard({ post, onStatus, onDelete, onLinkedIn }: {
 
       {/* Post content with hierarchy */}
       <div className={pStyles.postContent}>
-        <p className={pStyles.firstLine}>{firstLine}</p>
+         <p className={pStyles.firstLine} style={{ whiteSpace: 'pre-line' }}>{firstLine}</p>
         {rest && <p className={pStyles.restContent} style={{ whiteSpace: 'pre-line' }}>{rest}</p>}
       </div>
 

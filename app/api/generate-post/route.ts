@@ -283,8 +283,8 @@ function generateTerminalCard(content: string, tags: string[]): string {
   }
 
   const titleLines = wrapText(firstLine, 36)
-  const bodyText = lines.slice(1, 3).join(' ').slice(0, 160)
-  const bodyLines = wrapText(bodyText, 52)
+  const bodyText = lines.slice(1, 3).join(' ').slice(0, 120)
+  const bodyLines = wrapText(bodyText, 42)
 
   // Topic-specific accent colors
   const topicColors: Record<string, string> = {
