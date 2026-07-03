@@ -29,55 +29,67 @@ const TOPIC_TAGS: Record<string, string[]> = {
   'WordPress': ['wordpress', 'webdev', 'cms'],
 }
 
-// Smart post templates — takes a headline and generates natural post
+// Smart post templates — punchy hooks that stop people mid-scroll
 const POST_TEMPLATES = [
-  (headline: string, topic: string) => `Something caught my attention today.
+  (headline: string, topic: string) => `I changed my mind about ${topic} this week.
 
 ${headline}.
 
-This is exactly the kind of shift I have been watching in ${topic}. The tools and approaches we relied on a year ago are being replaced faster than most people realize.
+Six months ago I would have disagreed with this. Now I think the people who saw it coming were just paying closer attention than the rest of us.
 
-The developers who stay curious and keep experimenting will always have an edge over those who stick to what they know.
+The hardest part of working in a fast-moving field is knowing when to update your opinions and when to hold them.
 
-What is the most interesting thing you have read about ${topic} recently?`,
+What is something in ${topic} that changed how you think this year?`,
 
-  (headline: string, topic: string) => `Here is something worth paying attention to.
+  (headline: string, topic: string) => `Nobody talks about this part of ${topic}.
 
 ${headline}.
 
-I have been thinking about what this means for developers building products today. Every major shift in ${topic} creates both a problem and an opportunity at the same time.
+Everyone focuses on the flashy stuff. The tools, the frameworks, the announcements. What actually moves the needle is much quieter and far less exciting to write about.
 
-The question is not whether things are changing. The question is whether you are paying attention.
+I have spent the last few months paying more attention to the boring parts. Turns out that is where most of the real progress happens.
 
-How are you keeping up with what is happening in ${topic}?`,
+What is the most underrated thing you have learned about ${topic}?`,
 
   (headline: string, _topic: string) => `This stopped me mid-scroll today.
 
 ${headline}.
 
-It is a reminder that the industry moves fast and opinions that felt settled six months ago are already being challenged. I have changed my mind on several things just this year.
+It is a reminder that the industry moves fast and opinions that felt settled six months ago are already being challenged.
 
-Being wrong quickly and learning from it is underrated as a developer skill.
+Being wrong quickly and learning from it is underrated as a developer skill. The developers I respect most are the ones willing to say they got something wrong.
 
-What is something you believed strongly about your craft that you have since changed your mind on?`,
+What is something you believed strongly that you have since changed your mind on?`,
 
-  (headline: string, topic: string) => `Worth sharing: ${headline}.
-
-I have been following this space closely and what strikes me is how quickly the conversation has shifted. ${topic} looked completely different even 12 months ago.
-
-The developers building things at the edge of these changes tend to be the ones who end up ahead. Not because they predicted the future but because they stayed close enough to notice it happening.
-
-Are you building anything that takes advantage of what is changing right now?`,
-
-  (headline: string, topic: string) => `A headline that made me think today.
+  (headline: string, topic: string) => `Most developers get this wrong about ${topic}.
 
 ${headline}.
 
-The ${topic} space is moving fast. What I find interesting is not the news itself but the direction it points. Patterns only become obvious in hindsight, but right now there are a few signals worth paying attention to.
+I got it wrong too for a long time. The mental model I was using made sense on paper but broke down the moment I tried to apply it to something real.
 
-I am building with this in mind. Staying close to what is actually changing rather than what people say is changing.
+The gap between understanding something in theory and actually building with it is still the most humbling part of this work.
 
-What signals are you watching in your area of work?`,
+What took you the longest to actually understand in ${topic}?`,
+
+  (headline: string, topic: string) => `The biggest mistake I see in ${topic} right now.
+
+${headline}.
+
+Everyone is optimizing for the wrong thing. The conversation is dominated by what is new and almost nobody is talking about what is actually working.
+
+I have started filtering out most of the noise and paying attention to the people who are quietly shipping things that matter.
+
+What are you ignoring right now that you probably should not be?`,
+
+  (headline: string, topic: string) => `I tested this so you do not have to.
+
+${headline}.
+
+Here is what I found: most of the hype is exactly that. But underneath it there is something genuinely useful if you know where to look.
+
+${topic} rewards people who go past the surface level. The best insights are always a few layers deeper than the headline.
+
+What is the most surprising thing you have discovered recently while building something?`,
 ]
 
 async function fetchRSSHeadlines(topic: string): Promise<string[]> {
@@ -191,23 +203,30 @@ export async function POST(req: NextRequest) {
           max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `You are a developer writing a LinkedIn post. Use the news below as inspiration — share a genuine personal opinion or insight, do not summarize the news directly.
+            content: `You are an experienced developer with strong opinions who writes LinkedIn posts that stop people mid-scroll.
 
 ${headlinesText}
 
-Write a LinkedIn post about "${topic}" inspired by these trends.
+Write a LinkedIn post about "${topic}" inspired by this. Do NOT summarize the news. Share a genuine insight, a changed mind, or a lesson learned.
 
-Rules:
-- Tone: ${profile?.tone || 'Professional'} but conversational and human
-- Length: 150-200 words
-- First sentence must be a bold punchy hook — max 10 words
-- NO emojis, NO hashtags, NO bullet points with dashes or arrows
-- NO corporate buzzwords
-- Short paragraphs, max 2 sentences each
-- End with one genuine question
-- Sound like a real developer, not a marketing team
+HOOK EXAMPLES (pick a style like these for your first line):
+- I changed my mind about AI this week.
+- The biggest mistake developers make with ${topic}.
+- Nobody talks about this part of ${topic}.
+- I tested 21 tools so you dont have to.
+- Most developers get this completely wrong.
 
-Return ONLY the post content, nothing else.`
+RULES:
+- First line: punchy hook, max 8 words, makes people want to read more
+- Tone: ${profile?.tone || 'Professional'} but human and direct
+- Length: 120-160 words total
+- Short paragraphs, 1-2 sentences max
+- NO emojis, NO hashtags in the body
+- NO corporate words: leverage, game-changer, dive deep, unlock, journey
+- End with ONE short genuine question to the reader
+- Sound like a smart person talking to a friend
+
+Return ONLY the post text. Nothing else.`
           }]
         })
       })
@@ -261,11 +280,10 @@ function generateTerminalCard(content: string, tags: string[]): string {
       .replace(/"/g, '&quot;')
   }
 
-  // Split content into lines for wrapping
   const lines = content.split('\n').filter(l => l.trim())
   const firstLine = lines[0] || ''
 
-  // Wrap first line into max ~38 chars per line for large display
+  // Wrap text to fit within maxLen chars per line
   function wrapText(text: string, maxLen: number): string[] {
     const words = text.split(' ')
     const wrapped: string[] = []
@@ -282,99 +300,118 @@ function generateTerminalCard(content: string, tags: string[]): string {
     return wrapped
   }
 
-  const titleLines = wrapText(firstLine, 36)
-  const bodyText = lines.slice(1, 3).join(' ').slice(0, 120)
-  const bodyLines = wrapText(bodyText, 42)
+  // Title: wrap at 30 chars, max 3 lines
+  const titleLines = wrapText(firstLine, 30).slice(0, 3)
 
-  // Topic-specific accent colors
+  // Body: next 2 paragraphs combined, wrapped at 48 chars, max 4 lines
+  const bodyText = lines.slice(1, 3).join(' ').slice(0, 200)
+  const bodyLines = wrapText(bodyText, 48).slice(0, 4)
+
+  // Topic accent colors
   const topicColors: Record<string, string> = {
-    'ai': '#6366F1', 'javascript': '#F59E0B', 'react': '#38BDF8',
-    'wordpress': '#3B82F6', 'php': '#8B5CF6', 'python': '#10B981',
-    'saas': '#EC4899', 'startups': '#F97316', 'career': '#14B8A6',
-    'webdev': '#06B6D4', 'developer': '#6366F1', 'tech': '#3B82F6',
+    'ai': '#6366F1', 'machinelearning': '#6366F1', 'artificialintelligence': '#6366F1',
+    'javascript': '#F59E0B', 'typescript': '#3B82F6',
+    'react': '#38BDF8', 'nextjs': '#FFFFFF',
+    'wordpress': '#3B82F6', 'php': '#8B5CF6',
+    'python': '#10B981', 'saas': '#EC4899',
+    'buildinpublic': '#F97316', 'indiehacker': '#F97316',
+    'startups': '#F97316', 'entrepreneurship': '#F97316',
+    'career': '#14B8A6', 'careergrowth': '#14B8A6',
+    'webdev': '#06B6D4', 'coding': '#06B6D4', 'programming': '#6366F1',
+    'developer': '#6366F1', 'tech': '#3B82F6', 'technology': '#3B82F6',
   }
   const tag0 = (tags[0] || 'tech').toLowerCase()
   const accentColor = topicColors[tag0] || '#2563EB'
 
-  // Badge rendering
-  function badge(tag: string, x: number): string {
-    const label = `#${tag}`
-    const width = Math.max(label.length * 14 + 32, 80)
-    return `
-    <rect x="${x}" y="1080" width="${width}" height="48" rx="24" fill="${accentColor}" opacity="0.15"/>
-    <rect x="${x}" y="1080" width="${width}" height="48" rx="24" fill="none" stroke="${accentColor}" stroke-width="1.5" opacity="0.4"/>
-    <text x="${x + width/2}" y="1110" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600" fill="${accentColor}" text-anchor="middle">${esc(label)}</text>`
-  }
+  // Calculate title block height
+  const titleY = 260
+  const titleLineHeight = 95
+  const titleBlockEnd = titleY + titleLines.length * titleLineHeight
 
+  // Body starts after title + gap
+  const bodyStartY = titleBlockEnd + 60
+  const bodyLineHeight = 50
+
+  // Divider before footer
+  const dividerY = Math.max(bodyStartY + bodyLines.length * bodyLineHeight + 60, 900)
+
+  // Badge row
   let badgeX = 100
   const badges = tags.slice(0, 4).map(tag => {
     const label = `#${tag}`
-    const width = Math.max(label.length * 14 + 32, 80)
-    const b = badge(tag, badgeX)
-    badgeX += width + 16
+    const width = Math.max(label.length * 13 + 36, 90)
+    const b = `
+    <rect x="${badgeX}" y="${dividerY + 30}" width="${width}" height="46" rx="23" fill="${accentColor}" opacity="0.12"/>
+    <rect x="${badgeX}" y="${dividerY + 30}" width="${width}" height="46" rx="23" fill="none" stroke="${accentColor}" stroke-width="1.5" opacity="0.35"/>
+    <text x="${badgeX + width/2}" y="${dividerY + 59}" font-family="Inter, system-ui, sans-serif" font-size="19" font-weight="600" fill="${accentColor}" text-anchor="middle">${esc(label)}</text>`
+    badgeX += width + 14
     return b
   }).join('')
 
-  const svg = `<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  const totalHeight = dividerY + 160
+  const canvasH = Math.max(totalHeight, 1000)
+
+  const svg = `<svg width="1200" height="${canvasH}" viewBox="0 0 1200 ${canvasH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="60%" stop-color="#0F172A"/>
+      <stop offset="70%" stop-color="#0F172A"/>
       <stop offset="100%" stop-color="#1E1B4B"/>
     </linearGradient>
-    <radialGradient id="glow1" cx="85%" cy="10%" r="45%">
-      <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.12"/>
+    <radialGradient id="glow1" cx="90%" cy="5%" r="50%">
+      <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.14"/>
       <stop offset="100%" stop-color="#0F172A" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glow2" cx="15%" cy="90%" r="40%">
+    <radialGradient id="glow2" cx="10%" cy="95%" r="40%">
       <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.08"/>
       <stop offset="100%" stop-color="#0F172A" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <!-- Background -->
-  <rect width="1200" height="1200" fill="url(#bg)"/>
-  <rect width="1200" height="1200" fill="url(#glow1)"/>
-  <rect width="1200" height="1200" fill="url(#glow2)"/>
+  <rect width="1200" height="${canvasH}" fill="url(#bg)"/>
+  <rect width="1200" height="${canvasH}" fill="url(#glow1)"/>
+  <rect width="1200" height="${canvasH}" fill="url(#glow2)"/>
 
-  <!-- Subtle dot pattern -->
-  <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
-    <circle cx="20" cy="20" r="1" fill="#FFFFFF" opacity="0.03"/>
+  <!-- Subtle dot grid -->
+  <pattern id="dots" width="48" height="48" patternUnits="userSpaceOnUse">
+    <circle cx="24" cy="24" r="1" fill="#FFFFFF" opacity="0.025"/>
   </pattern>
-  <rect width="1200" height="1200" fill="url(#dots)"/>
+  <rect width="1200" height="${canvasH}" fill="url(#dots)"/>
 
   <!-- Left accent bar -->
-  <rect x="0" y="0" width="6" height="1200" fill="${accentColor}" opacity="0.8"/>
+  <rect x="0" y="0" width="5" height="${canvasH}" fill="${accentColor}" opacity="0.9"/>
 
-  <!-- Logo area -->
-  <text x="100" y="110" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="${accentColor}" letter-spacing="3">POSTPILOT AI</text>
-  <text x="100" y="148" font-family="Inter, system-ui, sans-serif" font-size="18" fill="#475569">Your LinkedIn Growth Assistant</text>
+  <!-- Header: Logo -->
+  <text x="100" y="95" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="${accentColor}" letter-spacing="2">POSTPILOT AI</text>
+  <text x="100" y="130" font-family="Inter, system-ui, sans-serif" font-size="17" fill="#475569">Your LinkedIn Growth Assistant</text>
 
-  <!-- Divider -->
-  <line x1="100" y1="175" x2="1100" y2="175" stroke="#1E293B" stroke-width="1"/>
+  <!-- Divider line -->
+  <line x1="100" y1="158" x2="1100" y2="158" stroke="#1E293B" stroke-width="1"/>
 
-  <!-- Big quotation mark -->
-  <text x="80" y="420" font-family="Georgia, serif" font-size="300" fill="${accentColor}" opacity="0.07">"</text>
+  <!-- Giant quotation mark watermark -->
+  <text x="75" y="${titleY + 60}" font-family="Georgia, serif" font-size="260" fill="${accentColor}" opacity="0.06">"</text>
 
-  <!-- Title lines -->
+  <!-- Title lines — large, bold -->
   ${titleLines.map((line, i) => `
-  <text x="100" y="${300 + i * 90}" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="700" fill="#F1F5F9" letter-spacing="-1">${esc(line)}</text>`).join('')}
+  <text x="100" y="${titleY + i * titleLineHeight}" font-family="Inter, system-ui, sans-serif" font-size="78" font-weight="800" fill="#F1F5F9" letter-spacing="-1.5">${esc(line)}</text>`).join('')}
+
+  <!-- Accent rule below title -->
+  <rect x="100" y="${titleBlockEnd + 20}" width="80" height="4" rx="2" fill="${accentColor}"/>
 
   <!-- Body text -->
-  ${bodyLines.length > 0 ? `
-  <line x1="100" y1="${300 + titleLines.length * 90 + 30}" x2="200" y2="${300 + titleLines.length * 90 + 30}" stroke="${accentColor}" stroke-width="3"/>
   ${bodyLines.map((line, i) => `
-  <text x="100" y="${300 + titleLines.length * 90 + 80 + i * 46}" font-family="Inter, system-ui, sans-serif" font-size="32" fill="#94A3B8">${esc(line)}</text>`).join('')}` : ''}
+  <text x="100" y="${bodyStartY + i * bodyLineHeight}" font-family="Inter, system-ui, sans-serif" font-size="32" fill="#94A3B8">${esc(line)}</text>`).join('')}
 
   <!-- Divider before footer -->
-  <line x1="100" y1="1055" x2="1100" y2="1055" stroke="#1E293B" stroke-width="1"/>
+  <line x1="100" y1="${dividerY}" x2="1100" y2="${dividerY}" stroke="#1E293B" stroke-width="1"/>
 
   <!-- Topic badges -->
   ${badges}
 
-  <!-- Footer -->
-  <text x="100" y="1160" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#334155">Generated with PostPilot AI</text>
-  <text x="1100" y="1160" font-family="Inter, system-ui, sans-serif" font-size="20" fill="${accentColor}" text-anchor="end">postpilot-ai-self.vercel.app</text>
+  <!-- Footer text -->
+  <text x="100" y="${dividerY + 140}" font-family="Inter, system-ui, sans-serif" font-size="19" fill="#334155">Generated with PostPilot AI</text>
+  <text x="1100" y="${dividerY + 140}" font-family="Inter, system-ui, sans-serif" font-size="19" fill="${accentColor}" text-anchor="end">postpilot-ai-self.vercel.app</text>
 </svg>`
 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
