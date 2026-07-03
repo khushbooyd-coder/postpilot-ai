@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import styles from './page.module.css'
 
 const DEMO_POSTS = [
@@ -72,6 +74,27 @@ function TypingDemo() {
 }
 
 export default function HomePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('topics')
+          .eq('id', user.id)
+          .single()
+        if (profile?.topics?.length > 0) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
+      }
+    }
+    checkSession()
+  }, [router])
+
   return (
     <main>
       {/* Nav */}
