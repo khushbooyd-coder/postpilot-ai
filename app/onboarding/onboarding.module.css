@@ -15,6 +15,10 @@
   width: 100%;
   max-width: 480px;
 }
+.card {
+  max-height: 95vh;
+  overflow-y: auto;
+}
 
 .logo {
   font-family: var(--font-space), sans-serif;
