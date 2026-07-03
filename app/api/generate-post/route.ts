@@ -128,8 +128,14 @@ async function fetchRSSHeadlines(topic: string): Promise<string[]> {
 }
 
 function generatePostFromTemplate(headline: string, topic: string): string {
+  // Clean raw RSS prefixes
+  const clean = headline
+    .replace(/^DEV Community:\s*/i, '')
+    .replace(/^HackerNews:\s*/i, '')
+    .replace(/^Hacker News:\s*/i, '')
+    .trim()
   const template = POST_TEMPLATES[Math.floor(Math.random() * POST_TEMPLATES.length)]
-  return template(headline, topic)
+  return template(clean, topic)
 }
 
 export async function POST(req: NextRequest) {
