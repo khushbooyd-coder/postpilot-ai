@@ -30,7 +30,8 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       // Pass token to session
-      session.linkedinAccessToken = token.linkedinAccessToken as string
+      session.linkedinAccessToken = token.linkedinAccessToken ?? ""
+       session.linkedinTokenExpiry = token.linkedinTokenExpiry
       return session
     },
     async signIn({ user, account }) {
