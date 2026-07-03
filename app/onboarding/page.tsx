@@ -29,9 +29,9 @@ function detectTopics(headline: string): string[] {
   if (h.includes('python')) detected.push('Python')
   if (h.includes('saas') || h.includes('founder')) detected.push('SaaS')
   if (h.includes('next')) detected.push('Next.js')
-  if (h.includes('javascript') || h.includes(' js ')) detected.push('JavaScript')
+  if (h.includes('javascript')) detected.push('JavaScript')
   if (h.includes('web') || h.includes('full-stack') || h.includes('fullstack')) detected.push('Web Development')
-  if (h.includes('ai') || h.includes('machine learning')) detected.push('AI')
+  if (h.includes('ai')) detected.push('AI')
   if (detected.length < 3) {
     if (!detected.includes('Web Development')) detected.push('Web Development')
     if (!detected.includes('SaaS')) detected.push('SaaS')
@@ -40,7 +40,7 @@ function detectTopics(headline: string): string[] {
   return [...new Set(detected)].slice(0, 4)
 }
 
-type Step = 'welcome' | 'generating' | 'post' | 'success'
+type Step = 'loading' | 'welcome' | 'generating' | 'post' | 'success'
 
 const GEN_STEPS = [
   { emoji: '📰', text: "Reading today's tech news..." },
@@ -49,14 +49,13 @@ const GEN_STEPS = [
   { emoji: '🎯', text: 'Making it LinkedIn-friendly...' },
 ]
 
-const STEP_ORDER: Step[] = ['welcome', 'generating', 'post', 'success']
+const DOT_STEPS: Step[] = ['welcome', 'generating', 'post', 'success']
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('welcome')
+  const [step, setStep] = useState<Step>('loading')
   const [userName, setUserName] = useState('there')
   const [userHeadline, setUserHeadline] = useState('Developer')
-  const [userFollowers] = useState<number>(2134)
   const [selected, setSelected] = useState<string[]>([])
   const [autoDetected, setAutoDetected] = useState<string[]>([])
   const [genStep, setGenStep] = useState(-1)
@@ -65,22 +64,15 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     async function load() {
-      // Handle magic link token in URL hash
-      if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
-        if (accessToken && refreshToken) {
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-          await new Promise(resolve => setTimeout(resolve, 500))
-        }
-      }
+      // Wait for Supabase to process any tokens in the URL
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/'); return }
+
+      if (!user) {
+        router.push('/')
+        return
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -108,6 +100,7 @@ export default function OnboardingPage() {
             const detected = detectTopics(data.headline)
             setAutoDetected(detected)
             setSelected(detected)
+            setStep('welcome')
             return
           }
         } catch { /* fallback */ }
@@ -116,6 +109,7 @@ export default function OnboardingPage() {
       const defaults = ['Web Development', 'AI', 'SaaS']
       setAutoDetected(defaults)
       setSelected(defaults)
+      setStep('welcome')
     }
     load()
   }, [router])
@@ -191,7 +185,23 @@ export default function OnboardingPage() {
 
   const firstLine = post?.content?.split('\n').find(l => l.trim()) || ''
   const restContent = post?.content?.split('\n').slice(1).join('\n') || ''
-  const currentIdx = STEP_ORDER.indexOf(step)
+  const currentIdx = DOT_STEPS.indexOf(step as Step)
+
+  // Loading state
+  if (step === 'loading') {
+    return (
+      <div className={styles.page}>
+        <div className={styles.card} style={{ textAlign: 'center', padding: '3rem' }}>
+          <div className={styles.logo}>
+            <i className="ti ti-brand-linkedin" aria-hidden="true" />
+            Post<em>Pilot</em> AI
+          </div>
+          <div className={styles.spinner} style={{ margin: '2rem auto', width: 32, height: 32, borderWidth: 3 }} />
+          <p style={{ color: '#64748B', fontSize: 14 }}>Setting up your account...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.page}>
@@ -203,7 +213,7 @@ export default function OnboardingPage() {
         </div>
 
         <div className={styles.dots}>
-          {STEP_ORDER.map((s, i) => (
+          {DOT_STEPS.map((s, i) => (
             <div
               key={s}
               className={`${styles.dot} ${i === currentIdx ? styles.dotActive : i < currentIdx ? styles.dotDone : ''}`}
@@ -211,7 +221,6 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        {/* WELCOME + TOPICS */}
         {step === 'welcome' && (
           <>
             <div className={styles.profileCard}>
@@ -221,9 +230,6 @@ export default function OnboardingPage() {
               <div className={styles.avatar}>{userName[0]?.toUpperCase()}</div>
               <div className={styles.profileName}>Welcome, {userName}! 👋</div>
               <div className={styles.profileHeadline}>{userHeadline}</div>
-              <div className={styles.followers}>
-                <i className="ti ti-users" aria-hidden="true" /> {userFollowers.toLocaleString()} followers
-              </div>
               <div className={styles.oauthNote}>
                 <i className="ti ti-lock" aria-hidden="true" /> Using official LinkedIn OAuth. We never see your password.
               </div>
@@ -273,7 +279,6 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* GENERATING */}
         {step === 'generating' && (
           <>
             <h2 className={styles.title}>Generating your post...</h2>
@@ -298,7 +303,6 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* POST READY */}
         {step === 'post' && post && (
           <>
             <h2 className={styles.title}>Here&apos;s your first post 🎉</h2>
@@ -338,7 +342,6 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* SUCCESS */}
         {step === 'success' && (
           <>
             <div className={styles.confetti}>🎉</div>
