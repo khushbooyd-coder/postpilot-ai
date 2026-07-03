@@ -8,29 +8,40 @@ export default function AuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
-    const hash = window.location.hash
-    const params = new URLSearchParams(hash.replace('#', ''))
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
-
     async function handleCallback() {
       try {
+        // Read token from URL hash (e.g. #access_token=...&refresh_token=...)
+        const hash = window.location.hash.replace('#', '')
+        const params = new URLSearchParams(hash)
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+
         if (accessToken && refreshToken) {
-          await supabase.auth.setSession({
+          // Set the session using the tokens from the URL
+          const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           })
+          if (error) {
+            console.error('setSession error:', error)
+            router.push('/?error=session_failed')
+            return
+          }
         }
 
-        await new Promise(r => setTimeout(r, 800))
+        // Small delay to let session settle
+        await new Promise(resolve => setTimeout(resolve, 800))
 
-        const { data: { user } } = await supabase.auth.getUser()
+        // Get the user
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-        if (!user) {
-          router.push('/')
+        if (userError || !user) {
+          console.error('getUser error:', userError)
+          router.push('/?error=no_user')
           return
         }
 
+        // Check if onboarding is done
         const { data: profile } = await supabase
           .from('profiles')
           .select('topics')
@@ -43,8 +54,8 @@ export default function AuthCallback() {
           router.push('/onboarding')
         }
       } catch (err) {
-        console.error('Callback error:', err)
-        router.push('/')
+        console.error('Auth callback error:', err)
+        router.push('/?error=callback_failed')
       }
     }
 

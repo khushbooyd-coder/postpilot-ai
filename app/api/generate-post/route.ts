@@ -128,14 +128,16 @@ async function fetchRSSHeadlines(topic: string): Promise<string[]> {
 }
 
 function generatePostFromTemplate(headline: string, topic: string): string {
-  // Clean raw RSS prefixes
+  // Clean raw RSS prefixes that sometimes leak through
   const clean = headline
     .replace(/^DEV Community:\s*/i, '')
-    .replace(/^HackerNews:\s*/i, '')
     .replace(/^Hacker News:\s*/i, '')
+    .replace(/^HackerNews:\s*/i, '')
+    .replace(/^dev\.to:\s*/i, '')
+    .replace(/^WP Tavern:\s*/i, '')
     .trim()
   const template = POST_TEMPLATES[Math.floor(Math.random() * POST_TEMPLATES.length)]
-  return template(clean, topic)
+  return template(clean || headline, topic)
 }
 
 export async function POST(req: NextRequest) {
@@ -310,11 +312,7 @@ function generateTerminalCard(content: string, tags: string[]): string {
   const titleLines = wrapText(firstLine, 30).slice(0, 3)
 
   // Body: next 2 paragraphs combined, wrapped at 48 chars, max 4 lines
-  //const bodyText = lines.slice(1, 3).join(' ').slice(0, 200)
-  const cleanLines = lines.slice(1).filter(l =>
-  l.trim().length > 40 && !l.includes('DEV Community') && !l.includes('HackerNews')
-)
-const bodyText = cleanLines.slice(0, 2).join(' ').slice(0, 180)
+  const bodyText = lines.slice(1, 3).join(' ').slice(0, 200)
   const bodyLines = wrapText(bodyText, 48).slice(0, 4)
 
   // Topic accent colors
@@ -343,7 +341,7 @@ const bodyText = cleanLines.slice(0, 2).join(' ').slice(0, 180)
   const bodyLineHeight = 50
 
   // Divider before footer
-  const dividerY = Math.max(bodyStartY + bodyLines.length * bodyLineHeight + 40, 750)
+  const dividerY = Math.max(bodyStartY + bodyLines.length * bodyLineHeight + 60, 900)
 
   // Badge row
   let badgeX = 100
@@ -359,8 +357,7 @@ const bodyText = cleanLines.slice(0, 2).join(' ').slice(0, 180)
   }).join('')
 
   const totalHeight = dividerY + 160
-  //const canvasH = Math.max(totalHeight, 1000)
-  const canvasH = Math.max(totalHeight, 800)
+  const canvasH = Math.max(totalHeight, 1000)
 
   const svg = `<svg width="1200" height="${canvasH}" viewBox="0 0 1200 ${canvasH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
