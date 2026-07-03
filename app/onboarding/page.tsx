@@ -6,23 +6,42 @@ import { supabase } from '@/lib/supabase'
 import styles from './onboarding.module.css'
 
 const TOPICS = [
+  // Technology
   { label: 'AI', cat: 'Technology' },
   { label: 'Web Development', cat: 'Technology' },
   { label: 'JavaScript', cat: 'Technology' },
+  { label: 'TypeScript', cat: 'Technology' },
   { label: 'React', cat: 'Technology' },
   { label: 'Next.js', cat: 'Technology' },
-  { label: 'WordPress', cat: 'Technology' },
-  { label: 'PHP', cat: 'Technology' },
+  { label: 'Node.js', cat: 'Technology' },
+  { label: 'Vue.js', cat: 'Technology' },
   { label: 'Python', cat: 'Technology' },
-  { label: 'TypeScript', cat: 'Technology' },
+  { label: 'PHP', cat: 'Technology' },
+  { label: 'WordPress', cat: 'Technology' },
+  { label: 'Flutter', cat: 'Technology' },
+  { label: 'Docker', cat: 'Technology' },
+  { label: 'DevOps', cat: 'Technology' },
+  { label: 'AWS', cat: 'Technology' },
+  { label: 'Cybersecurity', cat: 'Technology' },
+  { label: 'Open Source', cat: 'Technology' },
+  { label: 'Mobile Dev', cat: 'Technology' },
+  { label: 'UI/UX Design', cat: 'Technology' },
   { label: 'Git & GitHub', cat: 'Technology' },
+
+  // Business
   { label: 'SaaS', cat: 'Business' },
   { label: 'Startups', cat: 'Business' },
   { label: 'Marketing', cat: 'Business' },
   { label: 'Freelancing', cat: 'Business' },
+  { label: 'Sales', cat: 'Business' },
+  { label: 'Personal Branding', cat: 'Business' },
+
+  // Career
   { label: 'Career Growth', cat: 'Career' },
   { label: 'Productivity', cat: 'Career' },
   { label: 'Leadership', cat: 'Career' },
+  { label: 'Job Hunting', cat: 'Career' },
+  { label: 'Remote Work', cat: 'Career' },
 ]
 
 const TONES = [
