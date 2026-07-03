@@ -7,41 +7,75 @@ import styles from './onboarding.module.css'
 
 const TOPICS = [
   // Technology
-  { label: 'AI', cat: 'Technology' },
+  { label: 'AI & Machine Learning', cat: 'Technology' },
   { label: 'Web Development', cat: 'Technology' },
   { label: 'JavaScript', cat: 'Technology' },
   { label: 'TypeScript', cat: 'Technology' },
   { label: 'React', cat: 'Technology' },
   { label: 'Next.js', cat: 'Technology' },
   { label: 'Node.js', cat: 'Technology' },
-  { label: 'Vue.js', cat: 'Technology' },
   { label: 'Python', cat: 'Technology' },
   { label: 'PHP', cat: 'Technology' },
   { label: 'WordPress', cat: 'Technology' },
-  { label: 'Flutter', cat: 'Technology' },
-  { label: 'Docker', cat: 'Technology' },
-  { label: 'DevOps', cat: 'Technology' },
-  { label: 'AWS', cat: 'Technology' },
+  { label: 'Flutter & Mobile', cat: 'Technology' },
+  { label: 'Docker & DevOps', cat: 'Technology' },
+  { label: 'Cloud & AWS', cat: 'Technology' },
   { label: 'Cybersecurity', cat: 'Technology' },
+  { label: 'Data Science', cat: 'Technology' },
   { label: 'Open Source', cat: 'Technology' },
-  { label: 'Mobile Dev', cat: 'Technology' },
   { label: 'UI/UX Design', cat: 'Technology' },
-  { label: 'Git & GitHub', cat: 'Technology' },
+  { label: 'Blockchain', cat: 'Technology' },
 
-  // Business
-  { label: 'SaaS', cat: 'Business' },
-  { label: 'Startups', cat: 'Business' },
-  { label: 'Marketing', cat: 'Business' },
-  { label: 'Freelancing', cat: 'Business' },
-  { label: 'Sales', cat: 'Business' },
-  { label: 'Personal Branding', cat: 'Business' },
+  // Engineering & Science
+  { label: 'Electrical Engineering', cat: 'Engineering & Science' },
+  { label: 'Mechanical Engineering', cat: 'Engineering & Science' },
+  { label: 'Civil Engineering', cat: 'Engineering & Science' },
+  { label: 'Chemical Engineering', cat: 'Engineering & Science' },
+  { label: 'Renewable Energy', cat: 'Engineering & Science' },
+  { label: 'Robotics & Automation', cat: 'Engineering & Science' },
+  { label: 'Research & Innovation', cat: 'Engineering & Science' },
+  { label: 'Sustainability', cat: 'Engineering & Science' },
+  { label: 'Manufacturing', cat: 'Engineering & Science' },
 
-  // Career
-  { label: 'Career Growth', cat: 'Career' },
-  { label: 'Productivity', cat: 'Career' },
-  { label: 'Leadership', cat: 'Career' },
-  { label: 'Job Hunting', cat: 'Career' },
-  { label: 'Remote Work', cat: 'Career' },
+  // Business & Marketing
+  { label: 'Startups', cat: 'Business & Marketing' },
+  { label: 'SaaS', cat: 'Business & Marketing' },
+  { label: 'Entrepreneurship', cat: 'Business & Marketing' },
+  { label: 'Digital Marketing', cat: 'Business & Marketing' },
+  { label: 'Social Media Marketing', cat: 'Business & Marketing' },
+  { label: 'Content Marketing', cat: 'Business & Marketing' },
+  { label: 'SEO', cat: 'Business & Marketing' },
+  { label: 'E-commerce', cat: 'Business & Marketing' },
+  { label: 'Sales', cat: 'Business & Marketing' },
+  { label: 'Finance & Investing', cat: 'Business & Marketing' },
+  { label: 'Personal Branding', cat: 'Business & Marketing' },
+  { label: 'Freelancing', cat: 'Business & Marketing' },
+
+  // Healthcare
+  { label: 'Medicine & Health', cat: 'Healthcare' },
+  { label: 'Mental Health', cat: 'Healthcare' },
+  { label: 'Fitness & Wellness', cat: 'Healthcare' },
+  { label: 'Nutrition', cat: 'Healthcare' },
+  { label: 'Nursing & Care', cat: 'Healthcare' },
+  { label: 'Pharmaceuticals', cat: 'Healthcare' },
+
+  // Education & Career
+  { label: 'Career Growth', cat: 'Education & Career' },
+  { label: 'Job Hunting', cat: 'Education & Career' },
+  { label: 'Leadership', cat: 'Education & Career' },
+  { label: 'Productivity', cat: 'Education & Career' },
+  { label: 'Remote Work', cat: 'Education & Career' },
+  { label: 'Public Speaking', cat: 'Education & Career' },
+  { label: 'Teaching & Training', cat: 'Education & Career' },
+  { label: 'Higher Education', cat: 'Education & Career' },
+
+  // Creative & Media
+  { label: 'Design & Creativity', cat: 'Creative & Media' },
+  { label: 'Writing & Blogging', cat: 'Creative & Media' },
+  { label: 'Photography', cat: 'Creative & Media' },
+  { label: 'Video & Content Creation', cat: 'Creative & Media' },
+  { label: 'Podcasting', cat: 'Creative & Media' },
+  { label: 'Social Media', cat: 'Creative & Media' },
 ]
 
 const TONES = [
@@ -216,7 +250,7 @@ export default function OnboardingPage() {
   const currentIdx = DOT_STEPS.indexOf(step as any)
 
   // Group topics by category
-  const cats = ['Technology', 'Business', 'Career']
+  const cats = ['Technology', 'Engineering & Science', 'Business & Marketing', 'Healthcare', 'Education & Career', 'Creative & Media']
 
   if (step === 'loading') {
     return (

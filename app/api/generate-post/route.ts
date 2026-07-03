@@ -304,7 +304,11 @@ function generateTerminalCard(content: string, tags: string[]): string {
   const titleLines = wrapText(firstLine, 30).slice(0, 3)
 
   // Body: next 2 paragraphs combined, wrapped at 48 chars, max 4 lines
-  const bodyText = lines.slice(1, 3).join(' ').slice(0, 200)
+  //const bodyText = lines.slice(1, 3).join(' ').slice(0, 200)
+  const cleanLines = lines.slice(1).filter(l =>
+  l.trim().length > 40 && !l.includes('DEV Community') && !l.includes('HackerNews')
+)
+const bodyText = cleanLines.slice(0, 2).join(' ').slice(0, 180)
   const bodyLines = wrapText(bodyText, 48).slice(0, 4)
 
   // Topic accent colors
@@ -333,7 +337,7 @@ function generateTerminalCard(content: string, tags: string[]): string {
   const bodyLineHeight = 50
 
   // Divider before footer
-  const dividerY = Math.max(bodyStartY + bodyLines.length * bodyLineHeight + 60, 900)
+  const dividerY = Math.max(bodyStartY + bodyLines.length * bodyLineHeight + 40, 750)
 
   // Badge row
   let badgeX = 100
@@ -349,7 +353,8 @@ function generateTerminalCard(content: string, tags: string[]): string {
   }).join('')
 
   const totalHeight = dividerY + 160
-  const canvasH = Math.max(totalHeight, 1000)
+  //const canvasH = Math.max(totalHeight, 1000)
+  const canvasH = Math.max(totalHeight, 800)
 
   const svg = `<svg width="1200" height="${canvasH}" viewBox="0 0 1200 ${canvasH}" xmlns="http://www.w3.org/2000/svg">
   <defs>

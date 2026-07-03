@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getServerSession } from 'next-auth'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.email) {
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } }
+    )
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -22,8 +34,8 @@ export async function POST(req: NextRequest) {
     // Get user profile with LinkedIn token
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('linkedin_access_token, linkedin_token_expiry')
-      .eq('email', session.user.email)
+      .select('linkedin_access_token')
+      .eq('id', user.id)
       .single()
 
     if (!profile?.linkedin_access_token) {
@@ -75,13 +87,16 @@ export async function POST(req: NextRequest) {
       }),
     })
 
+    const postData = await postRes.json()
+
     if (!postRes.ok) {
-      const err = await postRes.json()
-      console.error('LinkedIn post error:', err)
-      return NextResponse.json({ error: 'Failed to post to LinkedIn' }, { status: 500 })
+      console.error('LinkedIn API error:', postData)
+      return NextResponse.json({
+        error: 'Failed to post to LinkedIn',
+        details: postData
+      }, { status: 500 })
     }
 
-    const postData = await postRes.json()
     const linkedinPostId = postData.id
 
     // Update post status in DB
