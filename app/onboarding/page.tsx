@@ -44,7 +44,7 @@ type Step = 'welcome' | 'generating' | 'post' | 'success'
 
 const GEN_STEPS = [
   { emoji: '📰', text: "Reading today's tech news..." },
-  { emoji: '🔍', text: 'Finding what\'s trending in your topics...' },
+  { emoji: '🔍', text: "Finding what's trending in your topics..." },
   { emoji: '✍️', text: 'Writing like you...' },
   { emoji: '🎯', text: 'Making it LinkedIn-friendly...' },
 ]
@@ -64,55 +64,61 @@ export default function OnboardingPage() {
   const [notifyPick, setNotifyPick] = useState<string | null>(null)
 
   useEffect(() => {
-  async function load() {
-    // Handle magic link token in URL hash
-    if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-      await supabase.auth.getSessionFromUrl()
-      // Small delay to let session settle
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/'); return }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('topics, linkedin_access_token')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.topics?.length > 0) {
-      router.push('/dashboard')
-      return
-    }
-
-    const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there'
-    setUserName(name.split(' ')[0])
-
-    if (profile?.linkedin_access_token) {
-      try {
-        const res = await fetch('https://api.linkedin.com/v2/userinfo', {
-          headers: { Authorization: `Bearer ${profile.linkedin_access_token}` },
-        })
-        const data = await res.json()
-        if (data.name) setUserName(data.name.split(' ')[0])
-        if (data.headline) {
-          setUserHeadline(data.headline)
-          const detected = detectTopics(data.headline)
-          setAutoDetected(detected)
-          setSelected(detected)
-          return
+    async function load() {
+      // Handle magic link token in URL hash
+      if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          await new Promise(resolve => setTimeout(resolve, 500))
         }
-      } catch { /* fallback */ }
-    }
+      }
 
-    const defaults = ['Web Development', 'AI', 'SaaS']
-    setAutoDetected(defaults)
-    setSelected(defaults)
-    setLoading(false)
-  }
-  load()
-}, [router])
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/'); return }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('topics, linkedin_access_token')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.topics?.length > 0) {
+        router.push('/dashboard')
+        return
+      }
+
+      const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there'
+      setUserName(name.split(' ')[0])
+
+      if (profile?.linkedin_access_token) {
+        try {
+          const res = await fetch('https://api.linkedin.com/v2/userinfo', {
+            headers: { Authorization: `Bearer ${profile.linkedin_access_token}` },
+          })
+          const data = await res.json()
+          if (data.name) setUserName(data.name.split(' ')[0])
+          if (data.headline) {
+            setUserHeadline(data.headline)
+            const detected = detectTopics(data.headline)
+            setAutoDetected(detected)
+            setSelected(detected)
+            return
+          }
+        } catch { /* fallback */ }
+      }
+
+      const defaults = ['Web Development', 'AI', 'SaaS']
+      setAutoDetected(defaults)
+      setSelected(defaults)
+    }
+    load()
+  }, [router])
 
   function toggleTopic(topic: string) {
     setSelected(prev =>
@@ -191,13 +197,11 @@ export default function OnboardingPage() {
     <div className={styles.page}>
       <div className={styles.card}>
 
-        {/* Logo */}
         <div className={styles.logo}>
           <i className="ti ti-brand-linkedin" aria-hidden="true" />
           Post<em>Pilot</em> AI
         </div>
 
-        {/* Progress dots */}
         <div className={styles.dots}>
           {STEP_ORDER.map((s, i) => (
             <div
@@ -374,6 +378,7 @@ export default function OnboardingPage() {
             </button>
           </>
         )}
+
       </div>
     </div>
   )
