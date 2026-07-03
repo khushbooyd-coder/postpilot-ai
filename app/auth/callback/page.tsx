@@ -8,38 +8,43 @@ export default function AuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', ''))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
     async function handleCallback() {
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      const accessToken = params.get('access_token')
-      const refreshToken = params.get('refresh_token')
+      try {
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+        }
 
-      if (accessToken && refreshToken) {
-        await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        })
-      }
+        await new Promise(r => setTimeout(r, 800))
 
-      await new Promise(resolve => setTimeout(resolve, 500))
+        const { data: { user } } = await supabase.auth.getUser()
 
-      const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push('/')
+          return
+        }
 
-      if (!user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('topics')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.topics?.length > 0) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
+      } catch (err) {
+        console.error('Callback error:', err)
         router.push('/')
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('topics')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.topics?.length > 0) {
-        router.push('/dashboard')
-      } else {
-        router.push('/onboarding')
       }
     }
 
