@@ -7,7 +7,19 @@ import Link from 'next/link'
 import styles from '../dashboard.module.css'
 import sStyles from './settings.module.css'
 
-const ALL_TOPICS = ['Tech', 'AI', 'Startups', 'Career', 'No-Code', 'Web Dev', 'Productivity', 'Leadership', 'Marketing', 'SaaS']
+const ALL_TOPICS = [
+  // Languages & Tech
+  'JavaScript', 'TypeScript', 'Python', 'PHP', 'HTML & CSS',
+  // Frameworks
+  'React', 'Next.js', 'Node.js', 'FastAPI',
+  // Platforms
+  'WordPress', 'Shopify', 'WooCommerce',
+  // Dev Topics
+  'Git & GitHub', 'Web Dev', 'AI', 'No-Code',
+  // Career & Business
+  'Tech', 'SaaS', 'Startups', 'Career',
+  'Productivity', 'Leadership', 'Marketing',
+]
 const TONES = ['Professional', 'Casual', 'Storytelling', 'Motivational', 'Educational']
 const TIMES = ['07:00', '08:00', '09:00', '10:00', '12:00', '17:00', '18:00', '19:00']
 
@@ -185,9 +197,9 @@ export default function SettingsPage() {
                 <i className="ti ti-circle-check" /> LinkedIn connected!
               </div>
             ) : (
-              <a href="/api/auth/signin/linkedin" className={sStyles.linkedinBtn}>
-                <i className="ti ti-brand-linkedin" /> Connect LinkedIn
-              </a>
+              <a href="/api/auth/linkedin" className={sStyles.linkedinBtn}>
+                  <i className="ti ti-brand-linkedin" /> Connect LinkedIn
+                </a>
             )}
           </div>
 
