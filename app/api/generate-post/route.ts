@@ -2,82 +2,64 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const RSS_FEEDS: Record<string, string[]> = {
-  'Tech': ['https://hnrss.org/frontpage', 'https://dev.to/feed'],
-  'AI': ['https://hnrss.org/frontpage?q=AI+OR+LLM+OR+GPT', 'https://dev.to/feed/tag/ai'],
+  'JavaScript': ['https://dev.to/feed/tag/javascript', 'https://hnrss.org/frontpage?q=javascript'],
+  'TypeScript': ['https://dev.to/feed/tag/typescript', 'https://hnrss.org/frontpage?q=typescript'],
+  'Python': ['https://dev.to/feed/tag/python', 'https://hnrss.org/frontpage?q=python'],
+  'PHP': ['https://dev.to/feed/tag/php', 'https://wptavern.com/feed'],
+  'HTML & CSS': ['https://dev.to/feed/tag/css', 'https://dev.to/feed/tag/html'],
+  'React': ['https://dev.to/feed/tag/react', 'https://hnrss.org/frontpage?q=react'],
+  'Next.js': ['https://dev.to/feed/tag/nextjs', 'https://hnrss.org/frontpage?q=nextjs'],
+  'Node.js': ['https://dev.to/feed/tag/node', 'https://hnrss.org/frontpage?q=nodejs'],
+  'FastAPI': ['https://dev.to/feed/tag/fastapi', 'https://hnrss.org/frontpage?q=fastapi'],
   'WordPress': ['https://wptavern.com/feed', 'https://dev.to/feed/tag/wordpress'],
-  'Web Dev': ['https://dev.to/feed/tag/webdev', 'https://hnrss.org/frontpage?q=javascript+OR+nextjs+OR+react'],
-  'Startups': ['https://hnrss.org/frontpage?q=startup+OR+saas+OR+founder', 'https://dev.to/feed/tag/startup'],
-  'SaaS': ['https://hnrss.org/frontpage?q=saas+OR+indie+hacker', 'https://dev.to/feed/tag/saas'],
-  'Career': ['https://dev.to/feed/tag/career', 'https://hnrss.org/frontpage?q=career+OR+developer'],
-  'Productivity': ['https://dev.to/feed/tag/productivity', 'https://hnrss.org/frontpage?q=productivity+OR+tools'],
+  'Shopify': ['https://dev.to/feed/tag/shopify', 'https://hnrss.org/frontpage?q=shopify'],
+  'WooCommerce': ['https://wptavern.com/feed', 'https://dev.to/feed/tag/woocommerce'],
+  'Git & GitHub': ['https://dev.to/feed/tag/git', 'https://hnrss.org/frontpage?q=github+OR+git'],
+  'Web Dev': ['https://dev.to/feed/tag/webdev', 'https://hnrss.org/frontpage?q=webdev'],
+  'AI': ['https://hnrss.org/frontpage?q=AI+OR+LLM+OR+GPT', 'https://dev.to/feed/tag/ai'],
   'No-Code': ['https://dev.to/feed/tag/nocode'],
+  'Tech': ['https://hnrss.org/frontpage', 'https://dev.to/feed'],
+  'SaaS': ['https://hnrss.org/frontpage?q=saas', 'https://dev.to/feed/tag/saas'],
+  'Startups': ['https://hnrss.org/frontpage?q=startup+OR+founder', 'https://dev.to/feed/tag/startup'],
+  'Career': ['https://dev.to/feed/tag/career'],
+  'Productivity': ['https://dev.to/feed/tag/productivity'],
   'Leadership': ['https://dev.to/feed/tag/leadership'],
   'Marketing': ['https://dev.to/feed/tag/marketing'],
 }
 
 const TOPIC_TAGS: Record<string, string[]> = {
+  'JavaScript': ['javascript', 'webdev', 'programming'],
+  'TypeScript': ['typescript', 'javascript', 'webdev'],
+  'Python': ['python', 'programming', 'developer'],
+  'PHP': ['php', 'webdev', 'programming'],
+  'HTML & CSS': ['html', 'css', 'webdev'],
+  'React': ['react', 'javascript', 'webdev'],
+  'Next.js': ['nextjs', 'react', 'webdev'],
+  'Node.js': ['nodejs', 'javascript', 'backend'],
+  'FastAPI': ['fastapi', 'python', 'backend'],
+  'WordPress': ['wordpress', 'webdev', 'cms'],
+  'Shopify': ['shopify', 'ecommerce', 'webdev'],
+  'WooCommerce': ['woocommerce', 'wordpress', 'ecommerce'],
+  'Git & GitHub': ['git', 'github', 'developer'],
+  'Web Dev': ['webdev', 'programming', 'coding'],
+  'AI': ['ai', 'machinelearning', 'developer'],
+  'No-Code': ['nocode', 'buildinpublic', 'maker'],
   'Tech': ['tech', 'technology', 'developer'],
-  'AI': ['ai', 'machinelearning', 'artificialintelligence'],
+  'SaaS': ['saas', 'buildinpublic', 'indiehacker'],
   'Startups': ['startups', 'entrepreneurship', 'founder'],
   'Career': ['career', 'careergrowth', 'programming'],
-  'No-Code': ['nocode', 'buildinpublic', 'maker'],
-  'Web Dev': ['webdev', 'programming', 'coding'],
   'Productivity': ['productivity', 'focus', 'developer'],
   'Leadership': ['leadership', 'management', 'teamwork'],
   'Marketing': ['marketing', 'growth', 'socialmedia'],
-  'SaaS': ['saas', 'buildinpublic', 'indiehacker'],
-  'WordPress': ['wordpress', 'webdev', 'cms'],
 }
 
-// Smart post templates — takes a headline and generates natural post
-const POST_TEMPLATES = [
-  (headline: string, topic: string) => `Something caught my attention today.
-
-${headline}.
-
-This is exactly the kind of shift I have been watching in ${topic}. The tools and approaches we relied on a year ago are being replaced faster than most people realize.
-
-The developers who stay curious and keep experimenting will always have an edge over those who stick to what they know.
-
-What is the most interesting thing you have read about ${topic} recently?`,
-
-  (headline: string, topic: string) => `Here is something worth paying attention to.
-
-${headline}.
-
-I have been thinking about what this means for developers building products today. Every major shift in ${topic} creates both a problem and an opportunity at the same time.
-
-The question is not whether things are changing. The question is whether you are paying attention.
-
-How are you keeping up with what is happening in ${topic}?`,
-
-  (headline: string, _topic: string) => `This stopped me mid-scroll today.
-
-${headline}.
-
-It is a reminder that the industry moves fast and opinions that felt settled six months ago are already being challenged. I have changed my mind on several things just this year.
-
-Being wrong quickly and learning from it is underrated as a developer skill.
-
-What is something you believed strongly about your craft that you have since changed your mind on?`,
-
-  (headline: string, topic: string) => `Worth sharing: ${headline}.
-
-I have been following this space closely and what strikes me is how quickly the conversation has shifted. ${topic} looked completely different even 12 months ago.
-
-The developers building things at the edge of these changes tend to be the ones who end up ahead. Not because they predicted the future but because they stayed close enough to notice it happening.
-
-Are you building anything that takes advantage of what is changing right now?`,
-
-  (headline: string, topic: string) => `A headline that made me think today.
-
-${headline}.
-
-The ${topic} space is moving fast. What I find interesting is not the news itself but the direction it points. Patterns only become obvious in hindsight, but right now there are a few signals worth paying attention to.
-
-I am building with this in mind. Staying close to what is actually changing rather than what people say is changing.
-
-What signals are you watching in your area of work?`,
+const TECH_KEYWORDS = [
+  'developer', 'code', 'programming', 'software', 'javascript', 'python',
+  'react', 'next', 'node', 'api', 'web', 'app', 'ai', 'tool', 'build',
+  'startup', 'saas', 'wordpress', 'plugin', 'github', 'open source',
+  'framework', 'library', 'typescript', 'database', 'cloud', 'deploy',
+  'engineer', 'tech', 'product', 'launch', 'update', 'release', 'version',
+  'performance', 'security', 'design', 'backend', 'frontend', 'fullstack'
 ]
 
 async function fetchRSSHeadlines(topic: string): Promise<string[]> {
@@ -95,14 +77,14 @@ async function fetchRSSHeadlines(topic: string): Promise<string[]> {
       let count = 0
       for (const match of matches) {
         const title = (match[1] || match[2] || '').trim()
-        if (
-          title &&
-          title.length > 15 &&
-          !title.toLowerCase().includes('rss') &&
-          !title.toLowerCase().includes('feed') &&
-          !title.toLowerCase().includes('comments on') &&
+        const titleLower = title.toLowerCase()
+        const isRelevant = TECH_KEYWORDS.some(kw => titleLower.includes(kw))
+        const isClean = title.length > 15 &&
+          !titleLower.includes('rss') &&
+          !titleLower.includes('feed') &&
+          !titleLower.includes('comments on') &&
           count < 4
-        ) {
+        if (isRelevant && isClean) {
           headlines.push(title)
           count++
         }
@@ -115,9 +97,23 @@ async function fetchRSSHeadlines(topic: string): Promise<string[]> {
   return headlines.slice(0, 5)
 }
 
-function generatePostFromTemplate(headline: string, topic: string): string {
-  const template = POST_TEMPLATES[Math.floor(Math.random() * POST_TEMPLATES.length)]
-  return template(headline, topic)
+async function generateWithGroq(prompt: string): Promise<string> {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 1000,
+      temperature: 0.85,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  })
+
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content || ''
 }
 
 export async function POST(req: NextRequest) {
@@ -141,88 +137,72 @@ export async function POST(req: NextRequest) {
       .single()
 
     const topics = profile?.topics || ['Tech', 'AI']
+    const tone = profile?.tone || 'Professional'
     const topic = topics[Math.floor(Math.random() * topics.length)]
     const tags = TOPIC_TAGS[topic] || ['tech', 'developer', 'buildinpublic']
 
-    let content: string
+    // Fetch real headlines
+    const headlines = await fetchRSSHeadlines(topic)
 
-    if (profile?.is_admin || !process.env.ANTHROPIC_API_KEY) {
-      // Free path — RSS + smart templates
-      const headlines = await fetchRSSHeadlines(topic)
+    const fallbackHeadlines: Record<string, string> = {
+  'JavaScript': 'JavaScript continues to dominate web development in 2025',
+  'TypeScript': 'TypeScript adoption is growing faster than any other language',
+  'Python': 'Python remains the most popular language for AI and data work',
+  'PHP': 'PHP 8 has changed how modern backend development works',
+  'HTML & CSS': 'CSS has become more powerful than most developers realize',
+  'React': 'React 19 is changing how we think about state management',
+  'Next.js': 'Next.js server components are replacing traditional API routes',
+  'Node.js': 'Node.js is still the backbone of modern backend development',
+  'FastAPI': 'FastAPI is becoming the go-to choice for Python APIs',
+  'WordPress': 'WordPress block editor is changing how developers build themes',
+  'Shopify': 'Shopify developers are in higher demand than ever',
+  'WooCommerce': 'WooCommerce powers more online stores than any other platform',
+  'Git & GitHub': 'Git workflows are evolving with AI-assisted development',
+  'Web Dev': 'Web development has never had more options or more complexity',
+  'AI': 'AI coding tools are changing how developers write and review code',
+  'No-Code': 'No-code tools are changing what developers actually need to build',
+  'Tech': 'The tools developers use are evolving faster than ever',
+  'SaaS': 'Solo developers are shipping full SaaS products in weeks not months',
+  'Startups': 'More developers are going indie and reaching profitability without funding',
+  'Career': 'The skills that get you hired as a developer in 2025 look different',
+  'Productivity': 'Developers who write less code and ship more are winning',
+  'Leadership': 'The best engineering managers write code less and communicate more',
+  'Marketing': 'Developers who understand distribution build more successful products',
+}
 
-      if (headlines.length === 0) {
-        // Fallback if RSS fails
-        const fallbackHeadlines: Record<string, string> = {
-          'AI': 'AI tools are becoming part of everyday developer workflows',
-          'Tech': 'The way we build software is changing faster than ever',
-          'WordPress': 'WordPress continues to power a third of the web',
-          'Web Dev': 'Modern web development has never had more options',
-          'SaaS': 'Solo developers are shipping products faster than small teams used to',
-          'Career': 'The skills that matter most in tech are shifting',
-          'Startups': 'More developers are going indie than ever before',
-          'Productivity': 'The tools that help developers do more with less are evolving fast',
-          'No-Code': 'No-code and low-code are changing who can build products',
-          'Leadership': 'Technical leadership looks different than it did five years ago',
-          'Marketing': 'Developers who understand distribution have a real advantage',
-        }
-        const fallback = fallbackHeadlines[topic] || 'The tech industry is evolving faster than ever'
-        content = generatePostFromTemplate(fallback, topic)
-      } else {
-        // Pick a random headline from the fetched ones
-        const headline = headlines[Math.floor(Math.random() * headlines.length)]
-        content = generatePostFromTemplate(headline, topic)
-      }
-    } else {
-      // Paid path — Claude API with RSS context
-      const headlines = await fetchRSSHeadlines(topic)
-      const headlinesText = headlines.length > 0
-        ? `Recent headlines:\n${headlines.map((h, i) => `${i + 1}. ${h}`).join('\n')}`
-        : `Write about recent trends in ${topic}.`
+    const headline = headlines.length > 0
+      ? headlines[Math.floor(Math.random() * headlines.length)]
+      : fallbackHeadlines[topic] || 'The way we build software is changing fast'
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY!,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `You are a developer writing a LinkedIn post. Use the news below as inspiration — share a genuine personal opinion or insight, do not summarize the news directly.
+    const prompt = `You are a full-stack developer writing a genuine LinkedIn post. You write like a real person — direct, thoughtful, no fluff.
 
-${headlinesText}
+Use this recent news as inspiration: "${headline}"
 
-Write a LinkedIn post about "${topic}" inspired by these trends.
+Write a LinkedIn post about ${topic} inspired by this. Do NOT just summarize the news. Share a real opinion, insight, or lesson from your experience as a developer.
 
-Rules:
-- Tone: ${profile?.tone || 'Professional'} but conversational and human
-- Length: 150-200 words
-- First sentence must be a bold punchy hook — max 10 words
-- NO emojis, NO hashtags, NO bullet points with dashes or arrows
-- NO corporate buzzwords
-- Short paragraphs, max 2 sentences each
-- End with one genuine question
-- Sound like a real developer, not a marketing team
+STRICT RULES:
+- First line must be a short punchy hook (max 8 words) — no question in the first line
+- NO emojis at all
+- NO hashtags
+- Short paragraphs, 1-3 sentences each
+- Numbered lists are OK if it fits naturally (like "3 things I learned")
+- NO corporate words: leverage, game-changer, dive deep, in today's world, unlock
+- Sound like a developer writing for themselves, not a marketing team
+- End with ONE genuine question to the reader
+- Total length: 120-180 words
 
-Return ONLY the post content, nothing else.`
-          }]
-        })
-      })
+Return ONLY the post text. Nothing else. No intro, no explanation.`
 
-      const aiData = await response.json()
-      content = aiData.content?.[0]?.text
+    const content = await generateWithGroq(prompt)
+    const formatted = content.trim().replace(/\n(?!\n)/g, '\n\n')
 
-      if (!content) {
-        return NextResponse.json({ error: 'Failed to generate post' }, { status: 500 })
-      }
+    if (!content) {
+      return NextResponse.json({ error: 'Failed to generate post' }, { status: 500 })
     }
 
     const hashtagLine = tags.map(t => `#${t}`).join(' ')
-    const contentWithTags = `${content}\n\n${hashtagLine}`
-    const imageUrl = generateTerminalCard(content, tags)
+    const contentWithTags = `${content.trim()}\n\n${hashtagLine}`
+    const imageUrl = generateTerminalCard(content.trim(), tags)
 
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
