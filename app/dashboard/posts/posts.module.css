@@ -1,0 +1,59 @@
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: #fff;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-inter), sans-serif;
+}
+
+.tab:hover { background: #f0f0f0; }
+
+.activeTab {
+  background: #185FA5 !important;
+  color: #fff !important;
+  border-color: #185FA5 !important;
+}
+
+.count {
+  background: rgba(0,0,0,0.08);
+  padding: 1px 7px;
+  border-radius: 100px;
+  font-size: 11px;
+}
+
+.activeTab .count {
+  background: rgba(255,255,255,0.25);
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  background: #fdf2f2;
+  color: #a32d2d;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: var(--font-inter), sans-serif;
+}
+
+.deleteBtn:hover { background: #fce4e4; }
