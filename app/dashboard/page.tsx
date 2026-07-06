@@ -86,6 +86,8 @@ export default function DashboardPage() {
       const data = await res.json()
       if (data.success) {
         setPosts(prev => [data.post, ...prev])
+        // Refresh page to show new post in today's draft
+        window.location.reload()
       }
     } catch (e) {
       console.error(e)
@@ -104,6 +106,27 @@ export default function DashboardPage() {
   const postedCount = posts.filter(p => p.status === 'posted').length
   const userName = email.split('@')[0]
   const displayName = userName.charAt(0).toUpperCase() + userName.slice(1)
+
+  if (generating) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(248,250,252,0.97)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1.5rem', zIndex: 999 }}>
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 16, padding: '2.5rem', textAlign: 'center', maxWidth: 380, width: '100%' }}>
+          <div style={{ fontSize: 40, marginBottom: '1rem' }}>✨</div>
+          <h3 style={{ fontFamily: 'var(--font-space, sans-serif)', fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>Generating your post...</h3>
+          <p style={{ fontSize: 13, color: '#64748B', marginBottom: '1.5rem' }}>Reading today&apos;s news and writing in your tone. This takes about 6 seconds.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
+            {['📰 Reading today's trending news...', '🔍 Finding what's hot in your topics...', '✍️ Writing in your tone...', '🎯 Making it LinkedIn-ready...'].map((step, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#475569' }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #185FA5', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                {step}
+              </div>
+            ))}
+          </div>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

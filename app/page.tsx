@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import styles from './page.module.css'
@@ -76,24 +76,55 @@ function TypingDemo() {
 export default function HomePage() {
   const router = useRouter()
 
+  const [checking, setChecking] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
+
   useEffect(() => {
     async function checkSession() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('topics')
-          .eq('id', user.id)
-          .single()
-        if (profile?.topics?.length > 0) {
-          router.push('/dashboard')
-        } else {
-          router.push('/onboarding')
-        }
+        setLoggedIn(true)
       }
+      setChecking(false)
     }
     checkSession()
   }, [router])
+
+  function handleGoToDashboard() {
+    router.push('/dashboard')
+  }
+
+  // Show loader while checking session
+  if (checking) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ width: 36, height: 36, border: '3px solid #E2E8F0', borderTopColor: '#185FA5', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ color: '#64748B', fontSize: 14, fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
+  }
+
+  // Show welcome back screen for logged in users
+  if (loggedIn) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 16, padding: '2.5rem', textAlign: 'center', maxWidth: 400, width: '100%' }}>
+          <div style={{ fontSize: 48, marginBottom: '1rem' }}>👋</div>
+          <h2 style={{ fontFamily: 'var(--font-space)', fontSize: '1.4rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>Welcome back!</h2>
+          <p style={{ fontSize: 14, color: '#64748B', marginBottom: '1.5rem', lineHeight: 1.6 }}>Ready to generate today&apos;s LinkedIn post?</p>
+          <button
+            onClick={handleGoToDashboard}
+            style={{ width: '100%', height: 46, background: '#185FA5', color: '#fff', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'Inter, sans-serif' }}
+          >
+            Go to Dashboard →
+          </button>
+          <p style={{ fontSize: 12, color: '#94A3B8', marginTop: '0.75rem' }}>Not you? <a href="/login" style={{ color: '#185FA5' }}>Sign in with a different account</a></p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
+  }
 
   return (
     <main>
