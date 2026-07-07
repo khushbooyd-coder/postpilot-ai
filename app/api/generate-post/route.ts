@@ -242,8 +242,8 @@ function generateImageCard(content: string, tags: string[]): string {
   }
 
   const titleLines = wrapText(firstLine, 30).slice(0, 3)
-  const bodyText = lines.slice(1, 2).join(' ').slice(0, 130)
-  const bodyLines = wrapText(bodyText, 45).slice(0, 3)
+  const bodyText = lines.slice(1, 3).join(' ').slice(0, 180)
+  const bodyLines = wrapText(bodyText, 48).slice(0, 4)
 
   const topicColors: Record<string, string> = {
     'ai': '#6366F1', 'machinelearning': '#6366F1', 'artificialintelligence': '#6366F1',
@@ -369,7 +369,47 @@ export async function POST(req: NextRequest) {
     // Pick a random topic and formula
     const topic = topics[Math.floor(Math.random() * topics.length)]
     const formula = CONTENT_FORMULAS[Math.floor(Math.random() * CONTENT_FORMULAS.length)]
-    const tags = TOPIC_TAGS[topic] || ['professional', 'career', 'growth']
+    // Smart tag generation based on topic AND post content
+    function getSmartTags(topic: string, postContent: string): string[] {
+      const topicTags = TOPIC_TAGS[topic] || []
+      const text = postContent.toLowerCase()
+
+      // Detect tags from content
+      const contentTags: string[] = []
+      if (text.includes('html') || text.includes('css')) contentTags.push('html', 'css')
+      if (text.includes('javascript') || text.includes(' js ')) contentTags.push('javascript')
+      if (text.includes('react')) contentTags.push('react')
+      if (text.includes('php')) contentTags.push('php')
+      if (text.includes('wordpress')) contentTags.push('wordpress')
+      if (text.includes('python')) contentTags.push('python')
+      if (text.includes('node')) contentTags.push('nodejs')
+      if (text.includes('saas')) contentTags.push('saas')
+      if (text.includes('startup') || text.includes('founder')) contentTags.push('startups')
+      if (text.includes('client') || text.includes('freelan')) contentTags.push('freelancing')
+      if (text.includes('market') || text.includes('seo')) contentTags.push('marketing')
+      if (text.includes('career') || text.includes('job')) contentTags.push('career')
+      if (text.includes('leadership') || text.includes('team')) contentTags.push('leadership')
+      if (text.includes('ai') || text.includes('machine learning')) contentTags.push('ai')
+      if (text.includes('web') || text.includes('website')) contentTags.push('webdev')
+      if (text.includes('electric') || text.includes('circuit')) contentTags.push('electricalengineering')
+      if (text.includes('health') || text.includes('medical')) contentTags.push('healthcare')
+      if (text.includes('design') || text.includes('ux') || text.includes('ui')) contentTags.push('uidesign')
+      if (text.includes('productivity') || text.includes('focus')) contentTags.push('productivity')
+      if (text.includes('remote') || text.includes('work from')) contentTags.push('remotework')
+
+      // Always add webdev/programming as base if it's a tech topic
+      const techTopics = ['Web Development', 'JavaScript', 'TypeScript', 'React', 'Next.js',
+        'Node.js', 'Python', 'PHP', 'WordPress', 'HTML & CSS', 'UI/UX Design']
+      if (techTopics.includes(topic) && !contentTags.includes('webdev')) {
+        contentTags.push('webdev')
+      }
+
+      // Combine and deduplicate — content tags first, then topic tags
+      const combined = [...new Set([...contentTags, ...topicTags])]
+      return combined.slice(0, 4)
+    }
+
+    const tags = getSmartTags(topic, content)
 
     // Build the full prompt
     const fullPrompt = `${formula.prompt(topic, persona)}
