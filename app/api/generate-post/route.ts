@@ -409,8 +409,6 @@ export async function POST(req: NextRequest) {
       return combined.slice(0, 4)
     }
 
-    const tags = getSmartTags(topic, content)
-
     // Build the full prompt
     const fullPrompt = `${formula.prompt(topic, persona)}
 
@@ -435,6 +433,9 @@ The things that challenged you most are what made you good at what you do.
 
 What is the hardest lesson ${topic} has taught you?`
     }
+
+    // Generate smart tags based on actual post content
+    const tags = getSmartTags(topic, content)
 
     // Add hashtags
     const hashtagLine = tags.map(t => `#${t}`).join(' ')
