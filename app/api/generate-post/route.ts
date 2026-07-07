@@ -242,8 +242,8 @@ function generateImageCard(content: string, tags: string[]): string {
   }
 
   const titleLines = wrapText(firstLine, 30).slice(0, 3)
-  const bodyText = lines.slice(1, 3).join(' ').slice(0, 180)
-  const bodyLines = wrapText(bodyText, 48).slice(0, 4)
+  const bodyText = lines.slice(1, 2).join(' ').slice(0, 130)
+  const bodyLines = wrapText(bodyText, 45).slice(0, 3)
 
   const topicColors: Record<string, string> = {
     'ai': '#6366F1', 'machinelearning': '#6366F1', 'artificialintelligence': '#6366F1',
